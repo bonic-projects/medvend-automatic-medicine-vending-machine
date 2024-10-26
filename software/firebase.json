@@ -1,0 +1,36 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "medvent-4b331",
+          "appId": "1:1016358109064:android:b6feb54d8f532b14a3043d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "medvent-4b331",
+          "configurations": {
+            "android": "1:1016358109064:android:b6feb54d8f532b14a3043d",
+            "ios": "1:1016358109064:ios:88db67e079c59b23a3043d",
+            "macos": "1:1016358109064:ios:88db67e079c59b23a3043d",
+            "web": "1:1016358109064:web:7ce36b3682404758a3043d",
+            "windows": "1:1016358109064:web:2baf93fe0ebd0f06a3043d"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "us-central1"
+    }
+  }
+}
