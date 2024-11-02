@@ -5,6 +5,7 @@ import 'package:medvend/app/app.logger.dart';
 class DatabaseService with ListenableServiceMixin {
   final FirebaseDatabase _firebaseDatabase = FirebaseDatabase.instance;
   final log = getLogger('DatabaseService');
+  final String dbCode = 'CMGq8r4lOXQgOsN8pFV5QW4HlOe2';
 
   // Fetch prescribed medicines for a specific patient
   Future<Map<String, dynamic>> fetchPrescribedMedicines(
@@ -54,23 +55,33 @@ class DatabaseService with ListenableServiceMixin {
     }
   }
 
-  // Dispense medicine for a patient
+  // Dispense medicine for a patient and update device data
   Future<void> dispenseMedicine(String patientId, String medicine) async {
     try {
+      // Update patient's data to mark medicine as dispensed
       await _firebaseDatabase.ref('patients/$patientId/data/$medicine').update({
         'status': true, // set to true when dispensed
       });
       log.i("Dispensed $medicine for patient $patientId.");
 
-      // Reset the status after 10 seconds
-      Future.delayed(Duration(seconds: 10), () async {
-        await _firebaseDatabase
-            .ref('patients/$patientId/data/$medicine')
-            .update({
-          'status': false, // reset to false after dispensing
+      // Fetch quantity from patient's data
+      DataSnapshot snapshot = await _firebaseDatabase
+          .ref('patients/$patientId/data/$medicine/quantity')
+          .get();
+      int quantity = snapshot.value as int;
+
+      // Update device's data path with medicine name and quantity in required format
+      await _firebaseDatabase
+          .ref('devices/$dbCode/data')
+          .update({medicine: quantity}); // sets as medicine: quantity format
+      log.i("Updated devices path with $medicine: $quantity.");
+
+      // Reset the device's data quantity to zero after 30 seconds
+      Future.delayed(Duration(seconds: 30), () async {
+        await _firebaseDatabase.ref('devices/$dbCode/data').update({
+          medicine: 0, // reset quantity to zero after 30 seconds
         });
-        log.i(
-            "Reset $medicine status to false for patient $patientId after 10 seconds.");
+        log.i("Reset $medicine quantity to zero after 30 seconds.");
       });
     } catch (e) {
       log.e("Error dispensing medicine for patient $patientId: $e");
