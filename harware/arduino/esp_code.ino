@@ -5,13 +5,6 @@
 #include <addons/TokenHelper.h>
 #include <addons/RTDBHelper.h>
 
-// Motor control pins
-int in1 = 26;  // Motor 1
-int in2 = 25;  // Motor 1
-int in3 = 33;  // Motor 2
-int in4 = 32;  // Motor 2
-int in5 = 5;   // Motor 3
-int in6 = 18;  // Motor 3
 
 // Servo control pins
 int servoPin1 = 13;  // Servo 1
@@ -22,9 +15,17 @@ Servo servo1;  // Create Servo object for Servo 1
 Servo servo2;  // Create Servo object for Servo 2
 Servo servo3;  // Create Servo object for Servo 3
 
+// int closeAngle = 80;
+// int openAngle = 50;
+
+int closeAngle = 75;
+int openAngle = 20;
+
+
+
 // Wi-Fi and Firebase configuration
-#define WIFI_SSID "Autobonics_4G"
-#define WIFI_PASSWORD "autobonics@27"
+#define WIFI_SSID "Aryahhh"
+#define WIFI_PASSWORD "arya@123" 
 #define API_KEY "AIzaSyA4OH86Xq0FH2szZ8qnQRNr2OHP7x1MLDI"
 #define DATABASE_URL "https://medvent-4b331-default-rtdb.asia-southeast1.firebasedatabase.app/"
 #define USER_EMAIL "device@gmail.com"
@@ -44,35 +45,82 @@ void streamCallback(StreamData data) {
   printResult(data);
 
   FirebaseJson jVal = data.jsonObject();
-  FirebaseJsonData med1;
-  FirebaseJsonData med2;
-  FirebaseJsonData med3;
+  FirebaseJsonData Amoxicillin;
+  FirebaseJsonData Ibuprofen;
+  FirebaseJsonData Paracetamol;
 
-  jVal.get(med1, "med1");
-  jVal.get(med2, "med2");
-  jVal.get(med3, "med3");
+  jVal.get(Amoxicillin, "Amoxicillin");
+  jVal.get(Ibuprofen, "Ibuprofen");
+  jVal.get(Paracetamol, "Paracetamol");
 
-  if (med1.success) {
+  if (Amoxicillin.success) {
     Serial.println("Success data med1");
-    bool value = med1.to<bool>();
-    if (value)
-      dispenseMed1();
+    int value = Amoxicillin.to<int>();
+    Serial.printf("Amoxicillin quantity: %d\n", value);
+    for(int i =0 ; i < value ; i++)
+    {
+      dispmed1(i);
+    }
   }
-  
-  if (med2.success) {
-    Serial.println("Success data med2");
-    bool value = med2.to<bool>();
-    if (value)
-      dispenseMed2();
+    if (Ibuprofen.success) {
+    Serial.println("Success data med1");
+    int value = Ibuprofen.to<int>();
+    Serial.printf("IBUprofen quantity: %d\n", value);
+    for(int i =0 ; i < value ; i++)
+    {
+      dispmed2(i);
+    }
   }
-  
-  if (med3.success) {
-    Serial.println("Success data med3");
-    bool value = med3.to<bool>();
-    if (value)
-      dispenseMed3();
+    if (Paracetamol.success) {
+    Serial.println("Success data med1");
+    int value = Paracetamol.to<int>();
+    Serial.printf("paracetamol quantity: %d\n", value);
+    for(int i =0 ; i < value ; i++)
+    {
+      dispmed3(i);
+    }
   }
 }
+// void streamCallback(StreamData data) {
+//   Serial.println("NEW DATA!");
+//   String p = data.dataPath();
+//   Serial.println(p);
+//   printResult(data);
+
+//   FirebaseJson jVal = data.jsonObject();
+//   FirebaseJsonData quantity;
+
+//   // Retrieve quantity for Amoxicillin
+//   jVal.get(quantity, "Amoxicillin/quantity");
+//   if (quantity.success) {
+//     int amoxicillinQty = quantity.to<int>();
+//     Serial.printf("Amoxicillin quantity: %d\n", amoxicillinQty);
+//     for(int i = 0; i < amoxicillinQty; i++) {
+//       dispmed1(i);
+//     }
+//   }
+
+//   // Retrieve quantity for Ibuprofen
+//   jVal.get(quantity, "Ibuprofen/quantity");
+//   if (quantity.success) {
+//     int ibuprofenQty = quantity.to<int>();
+//     Serial.printf("Ibuprofen quantity: %d\n", ibuprofenQty);
+//     for(int i = 0; i < ibuprofenQty; i++) {
+//       dispmed2(i);
+//     }
+//   }
+
+//   // Retrieve quantity for Paracetamol
+//   jVal.get(quantity, "Paracetamol/quantity");
+//   if (quantity.success) {
+//     int paracetamolQty = quantity.to<int>();
+//     Serial.printf("Paracetamol quantity: %d\n", paracetamolQty);
+//     for(int i = 0; i < paracetamolQty; i++) {
+//       dispmed3(i);
+//     }
+//   }
+// }
+
 
 void streamTimeoutCallback(bool timeout) {
   if (timeout)
@@ -83,19 +131,14 @@ void streamTimeoutCallback(bool timeout) {
 }
 
 void setup() {
-  // Set motor control pins as outputs
-  pinMode(in1, OUTPUT);
-  pinMode(in2, OUTPUT);
-  pinMode(in3, OUTPUT);
-  pinMode(in4, OUTPUT);
-  pinMode(in5, OUTPUT);
-  pinMode(in6, OUTPUT);
 
   // Attach servos to corresponding pins
   servo1.attach(servoPin1);
   servo2.attach(servoPin2);
   servo3.attach(servoPin3);
-
+   servo1.write(90);
+  servo2.write(75);
+  servo3.write(110);
   // Initialize serial communication
   Serial.begin(115200);
 
@@ -143,85 +186,53 @@ void setup() {
   Firebase.setStreamCallback(stream, streamCallback, streamTimeoutCallback);
 }
 
-// Motor and Servo Control Functions
-void motor1Clockwise() {
-  digitalWrite(in1, LOW);
-  digitalWrite(in2, HIGH);
-  Serial.println("Motor 1 (in1, in2) rotating clockwise");
-}
 
-void motor1Stop() {
-  digitalWrite(in1, LOW);
-  digitalWrite(in2, LOW);
-  Serial.println("Motor 1 (in1, in2) stopped");
-}
+// void dispmed1() {
+// servo1.write(openAngle);
+// delay(1000);
+// servo1.write(closeAngle);
+// delay(1000); 
+// }
 
-void motor2Clockwise() {
-  digitalWrite(in3, HIGH);
-  digitalWrite(in4, LOW);
-  Serial.println("Motor 2 (in3, in4) rotating clockwise");
-}
+// void dispmed2() {
+// servo2.write(openAngle);
+// delay(1000);
+// servo2.write(closeAngle);
+// delay(1000); 
+// }
 
-void motor2Stop() {
-  digitalWrite(in3, LOW);
-  digitalWrite(in4, LOW);
-  Serial.println("Motor 2 (in3, in4) stopped");
-}
+// void dispmed3() {
+// servo3.write(openAngle);
+// delay(1000);
+// servo3.write(closeAngle);
+// delay(1000);    
+// }
 
-void motor3Clockwise() {
-  digitalWrite(in5, HIGH);
-  digitalWrite(in6, LOW);
-  Serial.println("Motor 3 (in5, in6) rotating clockwise");
-}
-
-void motor3Stop() {
-  digitalWrite(in5, LOW);
-  digitalWrite(in6, LOW);
-  Serial.println("Motor 3 (in5, in6) stopped");
-}
-
-void servo1Control() {
+void dispmed1(int num) {
+  Serial.printf("%d. Dispensing Amoxicillin\n", num);
+  servo1.write(35);
+  delay(1000);
   servo1.write(90);
   delay(1000);
-  servo1.write(0);
-  Serial.println("Servo 1 moved from 0 to 90 degrees and back");
 }
 
-void servo2Control() {
-  servo2.write(90);
+void dispmed2(int num) {
+  Serial.printf("%d. Dispensing Ibuprofen\n", num);
+  servo2.write(openAngle);
   delay(1000);
-  servo2.write(0);
-  Serial.println("Servo 2 moved from 0 to 90 degrees and back");
-}
-
-void servo3Control() {
-  servo3.write(90);
+  servo2.write(closeAngle);
   delay(1000);
-  servo3.write(0);
-  Serial.println("Servo 3 moved from 0 to 90 degrees and back");
 }
 
-void dispenseMed1() {
-  motor1Clockwise();
-  delay(2000);
-  motor1Stop();
-  servo1Control();
+void dispmed3(int num) {
+  Serial.printf("%d. Dispensing Paracetamol\n", num);
+  servo3.write(40);
+  delay(1000);
+  servo3.write(110);
+  delay(1000);
 }
-
-void dispenseMed2() {
-  motor2Clockwise();
-  delay(2000);
-  motor2Stop();
-  servo2Control();
-}
-
-void dispenseMed3() {
-  motor3Clockwise();
-  delay(2000);
-  motor3Stop();
-  servo3Control();
-}
-
 void loop() {
   // Main loop
 }
+
+
